@@ -32,60 +32,55 @@ jobs:
     - name: Build Lite Version with Maven
       run: mvn -B package --file pom.xml -P lite
 
-    - name: Collect Libraries for Skidfuscator
+    - name: Collect Libraries
       run: |
         mkdir -p libs
         mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=compile
         mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=provided
-        curl -sL https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/496/downloads/paper-1.20.4-496.jar -o libs/paper.jar
+        curl -sL https://api.papermc.io/v2/projects/paper/versions/1.21/builds/130/downloads/paper-1.21-130.jar -o libs/paper.jar
 
-    - name: Download Skidfuscator
+    - name: Download ProGuard
       run: |
-        curl -sL https://github.com/skidfuscatordev/skidfuscator-java-obfuscator/releases/latest/download/skidfuscator.jar -o skidfuscator.jar
+        curl -sL https://github.com/Guardsquare/proguard/releases/download/v7.5.0/proguard-7.5.0.zip -o proguard.zip
+        unzip -q proguard.zip
+        mv proguard-7.5.0 proguard
 
-    - name: Create Skidfuscator Config
+    - name: Create ProGuard Config
       run: |
-        cat > skid.conf << 'EOF'
-        {
-          exempt: [
-            "com/gigazelensky/antispoof/AntiSpoof"
-          ]
-          transformers: {
-            stringEncryption: { enabled: true }
-            flowObfuscation: { enabled: true }
-            numberMutation: { enabled: true }
-            referenceObfuscation: { enabled: true }
-            renamer: { enabled: true }
-          }
+        LIBPATH=$(find libs -name "*.jar" | sed 's/^/-libraryjars /' | tr '\n' '\n')
+        JRT=$(java -XshowSettings:property -version 2>&1 | grep java.home | awk '{print $3}')
+
+        cat > proguard.pro << EOF
+        -injars target/antispoof-1.4.7.1.jar
+        -outjars target/antispoof-1.4.7.1-obf.jar
+        -libraryjars $JRT/lib/rt.jar
+        $LIBPATH
+        -dontwarn **
+        -keepattributes *Annotation*,Signature,Exceptions
+        -keep class com.gigazelensky.antispoof.AntiSpoofPlugin {
+            public *;
         }
+        -keep class * implements org.bukkit.plugin.Plugin
+        -keep class * implements org.bukkit.event.Listener
+        -keep class * implements org.bukkit.command.CommandExecutor
+        -keepclassmembers class * {
+            @org.bukkit.event.EventHandler *;
+        }
+        -repackageclasses 'a'
+        -allowaccessmodification
+        -optimizationpasses 3
+        -obfuscationdictionary /dev/null
         EOF
 
     - name: Obfuscate Full Version
       run: |
-        java -Xmx2G -jar skidfuscator.jar obfuscate \
-          target/antispoof-1.4.7.1.jar \
-          -o target/antispoof-1.4.7.1-obf.jar \
-          -li=libs \
-          -ph \
-          --config skid.conf || true
-        if [ ! -f target/antispoof-1.4.7.1-obf.jar ]; then
-          echo "Obfuscation failed - output file not found"
-          exit 1
-        fi
+        java -jar proguard/lib/proguard.jar @proguard.pro
         mv target/antispoof-1.4.7.1-obf.jar target/antispoof-1.4.7.1.jar
 
     - name: Obfuscate Lite Version
       run: |
-        java -Xmx2G -jar skidfuscator.jar obfuscate \
-          target/antispoof-lite-1.4.7.1.jar \
-          -o target/antispoof-lite-1.4.7.1-obf.jar \
-          -li=libs \
-          -ph \
-          --config skid.conf || true
-        if [ ! -f target/antispoof-lite-1.4.7.1-obf.jar ]; then
-          echo "Obfuscation failed - output file not found"
-          exit 1
-        fi
+        sed 's/antispoof-1.4.7.1/antispoof-lite-1.4.7.1/g' proguard.pro > proguard-lite.pro
+        java -jar proguard/lib/proguard.jar @proguard-lite.pro
         mv target/antispoof-lite-1.4.7.1-obf.jar target/antispoof-lite-1.4.7.1.jar
 
     - name: Upload Full Version Artifact
