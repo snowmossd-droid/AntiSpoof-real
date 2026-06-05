@@ -32,33 +32,23 @@ jobs:
     - name: Build Lite Version with Maven
       run: mvn -B package --file pom.xml -P lite
 
-    - name: Collect Libraries
-      run: |
-        mkdir -p libs
-        mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=compile
-        mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=provided
-        curl -sL https://api.papermc.io/v2/projects/paper/versions/1.21/builds/130/downloads/paper-1.21-130.jar -o libs/paper.jar
-
     - name: Download ProGuard
       run: |
         mvn dependency:copy \
           -Dartifact=com.guardsquare:proguard-base:7.5.0:jar \
           -DoutputDirectory=. \
           -Dmdep.stripVersion=true
-        ls -la proguard-base.jar
         mkdir -p proguard/lib
         mv proguard-base.jar proguard/lib/proguard.jar
 
     - name: Create ProGuard Config
       run: |
-        LIBPATH=$(find libs -name "*.jar" | sed 's/^/-libraryjars /' | tr '\n' '\n')
         JRT=$(java -XshowSettings:property -version 2>&1 | grep java.home | awk '{print $3}')
 
         cat > proguard.pro << EOF
         -injars target/antispoof-1.4.7.1.jar
         -outjars target/antispoof-1.4.7.1-obf.jar
         -libraryjars $JRT/lib/rt.jar
-        $LIBPATH
         -dontwarn **
         -keepattributes *Annotation*,Signature,Exceptions
         -keep class com.gigazelensky.antispoof.AntiSpoofPlugin {
@@ -74,17 +64,6 @@ jobs:
         -allowaccessmodification
         -optimizationpasses 3
         EOF
-
-    - name: Obfuscate Full Version
-      run: |
-        java -jar proguard/lib/proguard.jar @proguard.pro
-        mv target/antispoof-1.4.7.1-obf.jar target/antispoof-1.4.7.1.jar
-
-    - name: Obfuscate Lite Version
-      run: |
-        sed 's/antispoof-1.4.7.1/antispoof-lite-1.4.7.1/g' proguard.pro > proguard-lite.pro
-        java -jar proguard/lib/proguard.jar @proguard-lite.pro
-        mv target/antispoof-lite-1.4.7.1-obf.jar target/antispoof-lite-1.4.7.1.jar
 
     - name: Upload Full Version Artifact
       uses: actions/upload-artifact@v4
