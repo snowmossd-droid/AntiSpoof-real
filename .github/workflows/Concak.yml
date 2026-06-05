@@ -41,29 +41,50 @@ jobs:
         mkdir -p proguard/lib
         mv proguard-base.jar proguard/lib/proguard.jar
 
-    - name: Create ProGuard Config
+    - name: Collect Libraries
       run: |
-        JRT=$(java -XshowSettings:property -version 2>&1 | grep java.home | awk '{print $3}')
+        mkdir -p libs
+        mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=compile
+        mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=provided
+        curl -sL https://api.papermc.io/v2/projects/paper/versions/1.21/builds/130/downloads/paper-1.21-130.jar -o libs/paper.jar
 
-        cat > proguard.pro << EOF
-        -injars target/antispoof-1.4.7.1.jar
-        -outjars target/antispoof-1.4.7.1-obf.jar
-        -libraryjars $JRT/lib/rt.jar
-        -dontwarn **
-        -keepattributes *Annotation*,Signature,Exceptions
-        -keep class com.gigazelensky.antispoof.AntiSpoofPlugin {
-            public *;
-        }
-        -keep class * implements org.bukkit.plugin.Plugin
-        -keep class * implements org.bukkit.event.Listener
-        -keep class * implements org.bukkit.command.CommandExecutor
-        -keepclassmembers class * {
-            @org.bukkit.event.EventHandler *;
-        }
-        -repackageclasses 'a'
-        -allowaccessmodification
-        -optimizationpasses 3
-        EOF
+    - name: Obfuscate Full Version
+      run: |
+        LIBPATH=$(find libs -name "*.jar" | sed 's/^/-libraryjars /' | tr '\n' ' ')
+        java -jar proguard/lib/proguard.jar \
+          -injars target/antispoof-1.4.7.1.jar \
+          -outjars target/antispoof-1.4.7.1-obf.jar \
+          $LIBPATH \
+          -dontwarn '**' \
+          -keepattributes '*Annotation*,Signature,Exceptions' \
+          -keep 'class com.gigazelensky.antispoof.AntiSpoofPlugin { public *; }' \
+          -keep 'class * implements org.bukkit.plugin.Plugin' \
+          -keep 'class * implements org.bukkit.event.Listener' \
+          -keep 'class * implements org.bukkit.command.CommandExecutor' \
+          -keepclassmembers 'class * { @org.bukkit.event.EventHandler *; }' \
+          -repackageclasses 'a' \
+          -allowaccessmodification \
+          -optimizationpasses 3
+        mv target/antispoof-1.4.7.1-obf.jar target/antispoof-1.4.7.1.jar
+
+    - name: Obfuscate Lite Version
+      run: |
+        LIBPATH=$(find libs -name "*.jar" | sed 's/^/-libraryjars /' | tr '\n' ' ')
+        java -jar proguard/lib/proguard.jar \
+          -injars target/antispoof-lite-1.4.7.1.jar \
+          -outjars target/antispoof-lite-1.4.7.1-obf.jar \
+          $LIBPATH \
+          -dontwarn '**' \
+          -keepattributes '*Annotation*,Signature,Exceptions' \
+          -keep 'class com.gigazelensky.antispoof.AntiSpoofPlugin { public *; }' \
+          -keep 'class * implements org.bukkit.plugin.Plugin' \
+          -keep 'class * implements org.bukkit.event.Listener' \
+          -keep 'class * implements org.bukkit.command.CommandExecutor' \
+          -keepclassmembers 'class * { @org.bukkit.event.EventHandler *; }' \
+          -repackageclasses 'a' \
+          -allowaccessmodification \
+          -optimizationpasses 3
+        mv target/antispoof-lite-1.4.7.1-obf.jar target/antispoof-lite-1.4.7.1.jar
 
     - name: Upload Full Version Artifact
       uses: actions/upload-artifact@v4
