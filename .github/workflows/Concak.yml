@@ -32,10 +32,14 @@ jobs:
     - name: Build Lite Version with Maven
       run: mvn -B package --file pom.xml -P lite
 
+    - name: Collect Libraries for Skidfuscator
+      run: |
+        mkdir -p libs
+        mvn dependency:copy-dependencies -DoutputDirectory=libs -Dmdep.useRepositoryLayout=false
+
     - name: Download Skidfuscator
       run: |
         curl -sL https://raw.githubusercontent.com/skidfuscatordev/skidfuscator-java-obfuscator/refs/heads/master/scripts/install.sh | bash
-        java -jar ~/.skidfuscator/skidfuscator.jar --version
 
     - name: Create Skidfuscator Config
       run: |
@@ -59,6 +63,7 @@ jobs:
         java -Xmx2G -jar ~/.skidfuscator/skidfuscator.jar obfuscate \
           target/antispoof-1.4.7.1.jar \
           -o target/antispoof-1.4.7.1-obf.jar \
+          -li=libs \
           --config skid.conf
         mv target/antispoof-1.4.7.1-obf.jar target/antispoof-1.4.7.1.jar
 
@@ -67,6 +72,7 @@ jobs:
         java -Xmx2G -jar ~/.skidfuscator/skidfuscator.jar obfuscate \
           target/antispoof-lite-1.4.7.1.jar \
           -o target/antispoof-lite-1.4.7.1-obf.jar \
+          -li=libs \
           --config skid.conf
         mv target/antispoof-lite-1.4.7.1-obf.jar target/antispoof-lite-1.4.7.1.jar
 
