@@ -29,10 +29,10 @@ jobs:
     - name: Install ProGuard
       run: |
         mkdir -p proguard
-        curl -sL "https://github.com/Guardsquare/proguard/releases/download/v7.9.1/proguard-7.9.1.zip" -o proguard.zip
-        unzip -q proguard.zip -d proguard-tmp
-        cp proguard-tmp/proguard-7.9.1/lib/*.jar proguard/
-        rm -rf proguard.zip proguard-tmp
+        wget -q https://github.com/Guardsquare/proguard/releases/download/v7.9.1/proguard-7.9.1.zip
+        unzip -q proguard-7.9.1.zip
+        cp proguard-7.9.1/lib/proguard.jar proguard/
+        rm -rf proguard-7.9.1.zip proguard-7.9.1
 
     - name: Build Full Version with Maven
       run: mvn -B package --file pom.xml -P full
@@ -49,8 +49,8 @@ jobs:
 
     - name: Obfuscate Full Version
       run: |
-        LIBPATH=$(find libs -name "*.jar" -not -name "proguard*" | sed 's/^/-libraryjars /' | tr '\n' ' ')
-        java -cp "proguard/proguard-base.jar:proguard/proguard-core.jar" proguard.ProGuard \
+        LIBPATH=$(find libs -name "*.jar" | sed 's/^/-libraryjars /' | tr '\n' ' ')
+        java -jar proguard/proguard.jar \
           -injars target/antispoof-1.4.7.1.jar \
           -outjars target/antispoof-1.4.7.1-obf.jar \
           $LIBPATH \
@@ -70,8 +70,8 @@ jobs:
 
     - name: Obfuscate Lite Version
       run: |
-        LIBPATH=$(find libs -name "*.jar" -not -name "proguard*" | sed 's/^/-libraryjars /' | tr '\n' ' ')
-        java -cp "proguard/proguard-base.jar:proguard/proguard-core.jar" proguard.ProGuard \
+        LIBPATH=$(find libs -name "*.jar" | sed 's/^/-libraryjars /' | tr '\n' ' ')
+        java -jar proguard/proguard.jar \
           -injars target/antispoof-lite-1.4.7.1.jar \
           -outjars target/antispoof-lite-1.4.7.1-obf.jar \
           $LIBPATH \
