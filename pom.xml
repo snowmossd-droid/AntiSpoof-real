@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <packetevents.version>2.8.1-SNAPSHOT</packetevents.version>
+        <packetevents.version>2.12.2</packetevents.version>
         <placeholderapi.version>2.11.6</placeholderapi.version>
     </properties>
 
@@ -28,6 +28,10 @@
         <repository>
             <id>codemc-snapshots</id>
             <url>https://repo.codemc.io/repository/maven-snapshots/</url>
+        </repository>
+        <repository>
+            <id>jitpack</id>
+            <url>https://jitpack.io</url>
         </repository>
         <repository>
             <id>spigotmc-repo</id>
@@ -207,3 +211,4 @@
         </profile>
     </profiles>
 </project>
+                                    
