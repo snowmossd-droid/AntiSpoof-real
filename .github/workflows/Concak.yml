@@ -35,24 +35,23 @@ jobs:
     - name: Download Skidfuscator
       run: |
         curl -sL https://raw.githubusercontent.com/skidfuscatordev/skidfuscator-java-obfuscator/refs/heads/master/scripts/install.sh | bash
-        skidfuscator --version || java -jar ~/.skidfuscator/skidfuscator.jar --version
+        java -jar ~/.skidfuscator/skidfuscator.jar --version
 
     - name: Create Skidfuscator Config
       run: |
-        cat > skid.yml << 'EOF'
-        exempt:
-          - "com/gigazelensky/antispoof/AntiSpoof"
-        transformers:
-          stringEncryption:
-            enabled: true
-          flowObfuscation:
-            enabled: true
-          numberMutation:
-            enabled: true
-          referenceObfuscation:
-            enabled: true
-          renamer:
-            enabled: true
+        cat > skid.conf << 'EOF'
+        {
+          exempt: [
+            "com/gigazelensky/antispoof/AntiSpoof"
+          ]
+          transformers: {
+            stringEncryption: { enabled: true }
+            flowObfuscation: { enabled: true }
+            numberMutation: { enabled: true }
+            referenceObfuscation: { enabled: true }
+            renamer: { enabled: true }
+          }
+        }
         EOF
 
     - name: Obfuscate Full Version
@@ -60,7 +59,7 @@ jobs:
         java -Xmx2G -jar ~/.skidfuscator/skidfuscator.jar obfuscate \
           target/antispoof-1.4.7.1.jar \
           -o target/antispoof-1.4.7.1-obf.jar \
-          --config skid.yml
+          --config skid.conf
         mv target/antispoof-1.4.7.1-obf.jar target/antispoof-1.4.7.1.jar
 
     - name: Obfuscate Lite Version
@@ -68,7 +67,7 @@ jobs:
         java -Xmx2G -jar ~/.skidfuscator/skidfuscator.jar obfuscate \
           target/antispoof-lite-1.4.7.1.jar \
           -o target/antispoof-lite-1.4.7.1-obf.jar \
-          --config skid.yml
+          --config skid.conf
         mv target/antispoof-lite-1.4.7.1-obf.jar target/antispoof-lite-1.4.7.1.jar
 
     - name: Upload Full Version Artifact
