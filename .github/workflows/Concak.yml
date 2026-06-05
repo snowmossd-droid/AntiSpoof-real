@@ -55,6 +55,9 @@ jobs:
           -outjars target/antispoof-1.4.7.1-obf.jar \
           $LIBPATH \
           -dontwarn '**' \
+          -dontnote '**' \
+          -dontoptimize \
+          -dontpreverify \
           -keepattributes '*Annotation*,Signature,Exceptions' \
           -keep 'class com.gigazelensky.antispoof.AntiSpoofPlugin { public *; }' \
           -keep 'class * implements org.bukkit.plugin.Plugin' \
@@ -62,8 +65,7 @@ jobs:
           -keep 'class * implements org.bukkit.command.CommandExecutor' \
           -keepclassmembers 'class * { @org.bukkit.event.EventHandler *; }' \
           -repackageclasses 'a' \
-          -allowaccessmodification \
-          -optimizationpasses 3
+          -allowaccessmodification
         mv target/antispoof-1.4.7.1-obf.jar target/antispoof-1.4.7.1.jar
 
     - name: Obfuscate Lite Version
@@ -74,6 +76,9 @@ jobs:
           -outjars target/antispoof-lite-1.4.7.1-obf.jar \
           $LIBPATH \
           -dontwarn '**' \
+          -dontnote '**' \
+          -dontoptimize \
+          -dontpreverify \
           -keepattributes '*Annotation*,Signature,Exceptions' \
           -keep 'class com.gigazelensky.antispoof.AntiSpoofPlugin { public *; }' \
           -keep 'class * implements org.bukkit.plugin.Plugin' \
@@ -81,8 +86,7 @@ jobs:
           -keep 'class * implements org.bukkit.command.CommandExecutor' \
           -keepclassmembers 'class * { @org.bukkit.event.EventHandler *; }' \
           -repackageclasses 'a' \
-          -allowaccessmodification \
-          -optimizationpasses 3
+          -allowaccessmodification
         mv target/antispoof-lite-1.4.7.1-obf.jar target/antispoof-lite-1.4.7.1.jar
 
     - name: Upload Full Version Artifact
