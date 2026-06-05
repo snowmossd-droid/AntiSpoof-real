@@ -25,7 +25,7 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: maven
-        
+
     - name: Build Full Version with Maven
       run: mvn -B package --file pom.xml -P full
 
@@ -34,22 +34,30 @@ jobs:
         wget -q https://github.com/Guardsquare/proguard/releases/download/v7.4.2/proguard-7.4.2.zip
         unzip -q proguard-7.4.2.zip
 
+    - name: Create ProGuard Config
+      run: |
+        cat > proguard.pro << 'EOF'
+        -libraryjars <java.home>/jmods/java.base.jmod(!**.jar;!module-info.class)
+        -libraryjars <java.home>/jmods/java.logging.jmod(!**.jar;!module-info.class)
+        -dontwarn
+        -keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
+        -keep public class * extends org.bukkit.plugin.java.JavaPlugin
+        -keep public class * implements org.bukkit.event.Listener
+        -keep public class * implements org.bukkit.command.CommandExecutor
+        -keepclassmembers class * {
+            @org.bukkit.event.EventHandler *;
+        }
+        -repackageclasses 'com.gigazelensky.obf'
+        -allowaccessmodification
+        -optimizationpasses 5
+        EOF
+
     - name: Obfuscate Full Version with ProGuard
       run: |
         java -jar proguard-7.4.2/lib/proguard.jar \
           -injars target/antispoof-1.4.7.1.jar \
           -outjars target/antispoof-1.4.7.1-obf.jar \
-          -libraryjars "$JAVA_HOME/jmods/java.base.jmod" \
-          -libraryjars "$JAVA_HOME/jmods/java.logging.jmod" \
-          -dontwarn \
-          -keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,*Annotation*,EnclosingMethod \
-          -keep public class * extends org.bukkit.plugin.java.JavaPlugin \
-          -keep public class * implements org.bukkit.event.Listener \
-          -keep public class * implements org.bukkit.command.CommandExecutor \
-          -keepclassmembers class * { @org.bukkit.event.EventHandler *; } \
-          -repackageclasses 'com.gigazelensky.obf' \
-          -allowaccessmodification \
-          -optimizationpasses 5
+          @proguard.pro
         mv target/antispoof-1.4.7.1-obf.jar target/antispoof-1.4.7.1.jar
 
     - name: Build Lite Version with Maven
@@ -60,17 +68,7 @@ jobs:
         java -jar proguard-7.4.2/lib/proguard.jar \
           -injars target/antispoof-lite-1.4.7.1.jar \
           -outjars target/antispoof-lite-1.4.7.1-obf.jar \
-          -libraryjars "$JAVA_HOME/jmods/java.base.jmod" \
-          -libraryjars "$JAVA_HOME/jmods/java.logging.jmod" \
-          -dontwarn \
-          -keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,*Annotation*,EnclosingMethod \
-          -keep public class * extends org.bukkit.plugin.java.JavaPlugin \
-          -keep public class * implements org.bukkit.event.Listener \
-          -keep public class * implements org.bukkit.command.CommandExecutor \
-          -keepclassmembers class * { @org.bukkit.event.EventHandler *; } \
-          -repackageclasses 'com.gigazelensky.obf' \
-          -allowaccessmodification \
-          -optimizationpasses 5
+          @proguard.pro
         mv target/antispoof-lite-1.4.7.1-obf.jar target/antispoof-lite-1.4.7.1.jar
 
     - name: Upload Full Version Artifact
@@ -78,7 +76,7 @@ jobs:
       with:
         name: AntiSpoof-Full
         path: target/antispoof-1.4.7.1.jar
-        
+
     - name: Upload Lite Version Artifact
       uses: actions/upload-artifact@v4
       with:
@@ -93,7 +91,7 @@ jobs:
         distribution: 'temurin'
         server-id: github
         settings-path: ${{ github.workspace }}
-        
+
     - name: Deploy to GitHub Packages
       if: github.event_name == 'release'
       run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
