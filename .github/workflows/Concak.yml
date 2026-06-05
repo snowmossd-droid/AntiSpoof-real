@@ -35,11 +35,11 @@ jobs:
     - name: Download ProGuard
       run: |
         mvn dependency:copy \
-          -Dartifact=com.guardsquare:proguard-base:7.5.0:jar \
+          -Dartifact=com.guardsquare:proguard-base:7.5.0:jar:standalone \
           -DoutputDirectory=. \
           -Dmdep.stripVersion=true
         mkdir -p proguard/lib
-        mv proguard-base.jar proguard/lib/proguard.jar
+        mv proguard-base-standalone.jar proguard/lib/proguard.jar
 
     - name: Collect Libraries
       run: |
