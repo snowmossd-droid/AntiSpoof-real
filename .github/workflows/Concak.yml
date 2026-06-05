@@ -26,20 +26,16 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+    - name: Install ProGuard
+      run: |
+        sudo apt-get install -y proguard
+
     - name: Build Full Version with Maven
       run: mvn -B package --file pom.xml -P full
 
     - name: Build Lite Version with Maven
       run: mvn -B package --file pom.xml -P lite
 
-    - name: Download ProGuard
-      run: |
-        mkdir -p proguard/lib
-        curl -sL "https://github.com/Guardsquare/proguard/releases/download/v7.5.0/proguard-7.5.0.zip" \
-          -H "Authorization: token ${{ github.token }}" \
-          -L -o proguard.zip
-        unzip -q proguard.zip
-        cp proguard-7.5.0/lib/proguard.jar proguard/lib/proguard.jar
     - name: Collect Libraries
       run: |
         mkdir -p libs
@@ -50,7 +46,7 @@ jobs:
     - name: Obfuscate Full Version
       run: |
         LIBPATH=$(find libs -name "*.jar" | sed 's/^/-libraryjars /' | tr '\n' ' ')
-        java -jar proguard/lib/proguard.jar \
+        proguard \
           -injars target/antispoof-1.4.7.1.jar \
           -outjars target/antispoof-1.4.7.1-obf.jar \
           $LIBPATH \
@@ -69,7 +65,7 @@ jobs:
     - name: Obfuscate Lite Version
       run: |
         LIBPATH=$(find libs -name "*.jar" | sed 's/^/-libraryjars /' | tr '\n' ' ')
-        java -jar proguard/lib/proguard.jar \
+        proguard \
           -injars target/antispoof-lite-1.4.7.1.jar \
           -outjars target/antispoof-lite-1.4.7.1-obf.jar \
           $LIBPATH \
