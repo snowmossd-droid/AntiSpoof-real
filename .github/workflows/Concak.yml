@@ -31,6 +31,8 @@ jobs:
         mkdir -p proguard/lib
         curl -sL "https://repo1.maven.org/maven2/com/guardsquare/proguard-base/7.9.1/proguard-base-7.9.1.jar" -o proguard/lib/proguard-base.jar
         curl -sL "https://repo1.maven.org/maven2/com/guardsquare/proguard-core/9.1.6/proguard-core-9.1.6.jar" -o proguard/lib/proguard-core.jar
+        curl -sL "https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.20.0/log4j-core-2.20.0.jar" -o proguard/lib/log4j-core.jar
+        curl -sL "https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.20.0/log4j-api-2.20.0.jar" -o proguard/lib/log4j-api.jar
 
     - name: Build Full Version with Maven
       run: mvn -B package --file pom.xml -P full
@@ -48,7 +50,7 @@ jobs:
     - name: Obfuscate Full Version
       run: |
         LIBPATH=$(find libs -name "*.jar" | sed 's/^/-libraryjars /' | tr '\n' ' ')
-        java -cp "proguard/lib/proguard-base.jar:proguard/lib/proguard-core.jar" proguard.ProGuard \
+        java -cp "proguard/lib/proguard-base.jar:proguard/lib/proguard-core.jar:proguard/lib/log4j-core.jar:proguard/lib/log4j-api.jar" proguard.ProGuard \
           -injars target/antispoof-1.4.7.1.jar \
           -outjars target/antispoof-1.4.7.1-obf.jar \
           $LIBPATH \
@@ -67,7 +69,7 @@ jobs:
     - name: Obfuscate Lite Version
       run: |
         LIBPATH=$(find libs -name "*.jar" | sed 's/^/-libraryjars /' | tr '\n' ' ')
-        java -cp "proguard/lib/proguard-base.jar:proguard/lib/proguard-core.jar" proguard.ProGuard \
+        java -cp "proguard/lib/proguard-base.jar:proguard/lib/proguard-core.jar:proguard/lib/log4j-core.jar:proguard/lib/log4j-api.jar" proguard.ProGuard \
           -injars target/antispoof-lite-1.4.7.1.jar \
           -outjars target/antispoof-lite-1.4.7.1-obf.jar \
           $LIBPATH \
