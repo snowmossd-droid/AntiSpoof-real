@@ -34,13 +34,12 @@ jobs:
 
     - name: Download ProGuard
       run: |
-        mvn dependency:copy \
-          -Dartifact=com.guardsquare:proguard-base:7.5.0:jar:standalone \
-          -DoutputDirectory=. \
-          -Dmdep.stripVersion=true
         mkdir -p proguard/lib
-        mv proguard-base-standalone.jar proguard/lib/proguard.jar
-
+        curl -sL "https://github.com/Guardsquare/proguard/releases/download/v7.5.0/proguard-7.5.0.zip" \
+          -H "Authorization: token ${{ github.token }}" \
+          -L -o proguard.zip
+        unzip -q proguard.zip
+        cp proguard-7.5.0/lib/proguard.jar proguard/lib/proguard.jar
     - name: Collect Libraries
       run: |
         mkdir -p libs
