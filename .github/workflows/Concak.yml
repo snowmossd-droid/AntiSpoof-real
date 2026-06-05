@@ -38,6 +38,9 @@ jobs:
         mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=compile
         mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=provided
         curl -sL https://api.papermc.io/v2/projects/paper/versions/1.21/builds/130/downloads/paper-1.21-130.jar -o libs/paper.jar
+        mvn dependency:copy -Dartifact=io.netty:netty-all:4.1.117.Final -DoutputDirectory=libs
+        mvn dependency:copy -Dartifact=net.kyori:adventure-api:4.17.0 -DoutputDirectory=libs
+        mvn dependency:copy -Dartifact=net.kyori:adventure-text-serializer-legacy:4.17.0 -DoutputDirectory=libs
 
     - name: Download Skidfuscator
       run: |
