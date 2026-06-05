@@ -35,7 +35,8 @@ jobs:
     - name: Collect Libraries for Skidfuscator
       run: |
         mkdir -p libs
-        mvn dependency:copy-dependencies -DoutputDirectory=libs -Dmdep.useRepositoryLayout=false
+        mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=compile
+        mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=provided
 
     - name: Download Skidfuscator
       run: |
