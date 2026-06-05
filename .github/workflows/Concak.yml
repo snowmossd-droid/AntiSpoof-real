@@ -41,7 +41,7 @@ jobs:
 
     - name: Download Skidfuscator
       run: |
-        curl -sL https://raw.githubusercontent.com/skidfuscatordev/skidfuscator-java-obfuscator/refs/heads/master/scripts/install.sh | bash
+        curl -sL https://github.com/skidfuscatordev/skidfuscator-java-obfuscator/releases/latest/download/skidfuscator.jar -o skidfuscator.jar
 
     - name: Create Skidfuscator Config
       run: |
@@ -62,10 +62,11 @@ jobs:
 
     - name: Obfuscate Full Version
       run: |
-        java -Xmx2G -jar ~/.skidfuscator/skidfuscator.jar obfuscate \
+        java -Xmx2G -jar skidfuscator.jar obfuscate \
           target/antispoof-1.4.7.1.jar \
           -o target/antispoof-1.4.7.1-obf.jar \
           -li=libs \
+          -ph \
           --config skid.conf || true
         if [ ! -f target/antispoof-1.4.7.1-obf.jar ]; then
           echo "Obfuscation failed - output file not found"
@@ -75,10 +76,11 @@ jobs:
 
     - name: Obfuscate Lite Version
       run: |
-        java -Xmx2G -jar ~/.skidfuscator/skidfuscator.jar obfuscate \
+        java -Xmx2G -jar skidfuscator.jar obfuscate \
           target/antispoof-lite-1.4.7.1.jar \
           -o target/antispoof-lite-1.4.7.1-obf.jar \
           -li=libs \
+          -ph \
           --config skid.conf || true
         if [ ! -f target/antispoof-lite-1.4.7.1-obf.jar ]; then
           echo "Obfuscation failed - output file not found"
