@@ -45,7 +45,6 @@ jobs:
         cd paper-tmp
         jar xf ../paper-full.jar
         find . -name "*.jar" | while read f; do
-          name=$(basename "$f" .jar)
           cp "$f" "../libs/" 2>/dev/null || true
         done
         cd ..
@@ -79,7 +78,11 @@ jobs:
           target/antispoof-1.4.7.1.jar \
           -o target/antispoof-1.4.7.1-obf.jar \
           -li=libs \
-          --config skid.conf
+          --config skid.conf || true
+        if [ ! -f target/antispoof-1.4.7.1-obf.jar ]; then
+          echo "Obfuscation failed - output file not found"
+          exit 1
+        fi
         mv target/antispoof-1.4.7.1-obf.jar target/antispoof-1.4.7.1.jar
 
     - name: Obfuscate Lite Version
@@ -88,7 +91,11 @@ jobs:
           target/antispoof-lite-1.4.7.1.jar \
           -o target/antispoof-lite-1.4.7.1-obf.jar \
           -li=libs \
-          --config skid.conf
+          --config skid.conf || true
+        if [ ! -f target/antispoof-lite-1.4.7.1-obf.jar ]; then
+          echo "Obfuscation failed - output file not found"
+          exit 1
+        fi
         mv target/antispoof-lite-1.4.7.1-obf.jar target/antispoof-lite-1.4.7.1.jar
 
     - name: Upload Full Version Artifact
