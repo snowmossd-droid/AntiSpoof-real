@@ -1,34 +1,61 @@
-name: Extract and Push
+name: Build AntiSpoof
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ main, master, dev ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Allows manual triggering
+  release:
+    types: [ created ]
 
 jobs:
-  extract:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Unzip plugin
-        run: unzip AntiSpoof-1_4_7_1-licensed.zip -d extracted
-
-      - name: Check extracted folder
-        run: ls extracted/
-
-      - name: Move files to root
-        run: |
-          FOLDER=$(ls extracted/ | head -1)
-          cp -r extracted/$FOLDER/. .
-          rm -rf extracted
-
-      - name: Commit and push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Extract plugin structure"
-          git push
-
-          
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+        
+    - name: Build Full Version with Maven
+      run: mvn -B package --file pom.xml -P full
+      
+    - name: Build Lite Version with Maven
+      run: mvn -B package --file pom.xml -P lite
+      
+    - name: Upload Full Version Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: AntiSpoof-Full
+        path: target/antispoof-*.jar
+        
+    - name: Upload Lite Version Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: AntiSpoof-Lite
+        path: target/antispoof-lite-*.jar
+        
+    # Only publish to GitHub Packages when a release is created
+    - name: Publish to GitHub Packages
+      if: github.event_name == 'release'
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        server-id: github
+        settings-path: ${{ github.workspace }}
+        
+    - name: Deploy to GitHub Packages
+      if: github.event_name == 'release'
+      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
