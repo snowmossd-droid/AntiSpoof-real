@@ -37,6 +37,7 @@ jobs:
         mkdir -p libs
         mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=compile
         mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=provided
+        curl -sL https://api.papermc.io/v2/projects/paper/versions/1.21/builds/130/downloads/paper-1.21-130.jar -o libs/paper.jar
 
     - name: Download Skidfuscator
       run: |
