@@ -47,14 +47,23 @@
             <name>Respark - Maven Repository</name>
             <url>https://maven.respark.dev/releases</url>
         </repository>
+        <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
     </repositories>
 
     <dependencies>
-        <!-- Dependencies common to both profiles -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
             <version>${spigot.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.20.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -82,7 +91,7 @@
         <dependency>
             <groupId>dev.respark.licensegate</groupId>
             <artifactId>license-gate</artifactId>
-            <version>1.0.4</version>
+            <version>1.0.6</version>
         </dependency>
     </dependencies>
 
@@ -126,7 +135,6 @@
     </build>
 
     <profiles>
-        <!-- Default profile: Full version with shaded PacketEvents -->
         <profile>
             <id>full</id>
             <activation>
@@ -176,7 +184,6 @@
             </build>
         </profile>
 
-        <!-- Lite version without PacketEvents (requires external installation) -->
         <profile>
             <id>lite</id>
             <dependencies>
