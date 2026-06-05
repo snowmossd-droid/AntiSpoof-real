@@ -41,7 +41,7 @@ jobs:
 
     - name: Download ProGuard
       run: |
-        curl -sL https://github.com/Guardsquare/proguard/releases/download/v7.5.0/proguard-7.5.0.zip -o proguard.zip
+        wget -q https://github.com/Guardsquare/proguard/releases/download/v7.5.0/proguard-7.5.0.zip -O proguard.zip
         unzip -q proguard.zip
         mv proguard-7.5.0 proguard
 
@@ -69,7 +69,6 @@ jobs:
         -repackageclasses 'a'
         -allowaccessmodification
         -optimizationpasses 3
-        -obfuscationdictionary /dev/null
         EOF
 
     - name: Obfuscate Full Version
