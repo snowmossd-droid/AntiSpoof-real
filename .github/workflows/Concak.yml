@@ -5,7 +5,7 @@ on:
     branches: [ main, master, dev ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:  # Allows manual triggering
+  workflow_dispatch:
   release:
     types: [ created ]
 
@@ -28,10 +28,56 @@ jobs:
         
     - name: Build Full Version with Maven
       run: mvn -B package --file pom.xml -P full
-      
+
+    - name: Obfuscate Full Version with ProGuard
+      run: |
+        wget -q https://github.com/Guardsquare/proguard/releases/download/v7.4.2/proguard-7.4.2.zip
+        unzip -q proguard-7.4.2.zip
+        java -jar proguard-7.4.2/lib/proguard.jar \
+          -injars target/antispoof-1.4.7.1.jar \
+          -outjars target/antispoof-1.4.7.1-obf.jar \
+          -libraryjars <java.home>/lib/rt.jar \
+          -libraryjars <java.home>/jmods/java.base.jmod(!**.jar;!module-info.class) \
+          -dontwarn \
+          -keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,*Annotation*,EnclosingMethod \
+          -keep public class * implements org.bukkit.plugin.Plugin \
+          -keep public class * extends org.bukkit.plugin.java.JavaPlugin \
+          -keep public class * implements org.bukkit.event.Listener \
+          -keep public class * implements org.bukkit.command.CommandExecutor \
+          -keepclassmembers class * { \
+            @org.bukkit.event.EventHandler *; \
+          } \
+          -repackageclasses 'com.gigazelensky.obf' \
+          -allowaccessmodification \
+          -optimizationpasses 5 \
+          -verbose
+        mv target/antispoof-1.4.7.1-obf.jar target/antispoof-1.4.7.1.jar
+
     - name: Build Lite Version with Maven
       run: mvn -B package --file pom.xml -P lite
-      
+
+    - name: Obfuscate Lite Version with ProGuard
+      run: |
+        java -jar proguard-7.4.2/lib/proguard.jar \
+          -injars target/antispoof-lite-1.4.7.1.jar \
+          -outjars target/antispoof-lite-1.4.7.1-obf.jar \
+          -libraryjars <java.home>/lib/rt.jar \
+          -libraryjars <java.home>/jmods/java.base.jmod(!**.jar;!module-info.class) \
+          -dontwarn \
+          -keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,*Annotation*,EnclosingMethod \
+          -keep public class * implements org.bukkit.plugin.Plugin \
+          -keep public class * extends org.bukkit.plugin.java.JavaPlugin \
+          -keep public class * implements org.bukkit.event.Listener \
+          -keep public class * implements org.bukkit.command.CommandExecutor \
+          -keepclassmembers class * { \
+            @org.bukkit.event.EventHandler *; \
+          } \
+          -repackageclasses 'com.gigazelensky.obf' \
+          -allowaccessmodification \
+          -optimizationpasses 5 \
+          -verbose
+        mv target/antispoof-lite-1.4.7.1-obf.jar target/antispoof-lite-1.4.7.1.jar
+
     - name: Upload Full Version Artifact
       uses: actions/upload-artifact@v4
       with:
@@ -43,8 +89,7 @@ jobs:
       with:
         name: AntiSpoof-Lite
         path: target/antispoof-lite-*.jar
-        
-    # Only publish to GitHub Packages when a release is created
+
     - name: Publish to GitHub Packages
       if: github.event_name == 'release'
       uses: actions/setup-java@v4
