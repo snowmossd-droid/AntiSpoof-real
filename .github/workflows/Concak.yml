@@ -29,46 +29,51 @@ jobs:
     - name: Build Full Version with Maven
       run: mvn -B package --file pom.xml -P full
 
-    - name: Download ProGuard
-      run: |
-        wget -q https://github.com/Guardsquare/proguard/releases/download/v7.4.2/proguard-7.4.2.zip
-        unzip -q proguard-7.4.2.zip
-
-    - name: Create ProGuard Config
-      run: |
-        cat > proguard.pro << 'EOF'
-        -libraryjars <java.home>/jmods/java.base.jmod(!**.jar;!module-info.class)
-        -libraryjars <java.home>/jmods/java.logging.jmod(!**.jar;!module-info.class)
-        -dontwarn
-        -keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
-        -keep public class * extends org.bukkit.plugin.java.JavaPlugin
-        -keep public class * implements org.bukkit.event.Listener
-        -keep public class * implements org.bukkit.command.CommandExecutor
-        -keepclassmembers class * {
-            @org.bukkit.event.EventHandler *;
-        }
-        -repackageclasses 'com.gigazelensky.obf'
-        -allowaccessmodification
-        -optimizationpasses 5
-        EOF
-
-    - name: Obfuscate Full Version with ProGuard
-      run: |
-        java -jar proguard-7.4.2/lib/proguard.jar \
-          -injars target/antispoof-1.4.7.1.jar \
-          -outjars target/antispoof-1.4.7.1-obf.jar \
-          @proguard.pro
-        mv target/antispoof-1.4.7.1-obf.jar target/antispoof-1.4.7.1.jar
-
     - name: Build Lite Version with Maven
       run: mvn -B package --file pom.xml -P lite
 
-    - name: Obfuscate Lite Version with ProGuard
+    - name: Download Skidfuscator
       run: |
-        java -jar proguard-7.4.2/lib/proguard.jar \
-          -injars target/antispoof-lite-1.4.7.1.jar \
-          -outjars target/antispoof-lite-1.4.7.1-obf.jar \
-          @proguard.pro
+        wget -q https://github.com/skidfuscatordev/skidfuscator-java-obfuscator/releases/download/v0.0.3/skidfuscator.jar -O skidfuscator.jar
+
+    - name: Create Skidfuscator Config for Full
+      run: |
+        cat > skid-full.yml << 'EOF'
+        exempt:
+          - "com.gigazelensky.antispoof.AntiSpoof"
+        transformers:
+          string_encryption: true
+          flow_obfuscation: true
+          number_mutation: true
+          reference_obfuscation: true
+        EOF
+
+    - name: Obfuscate Full Version
+      run: |
+        java -jar skidfuscator.jar obfuscate \
+          target/antispoof-1.4.7.1.jar \
+          --output target/antispoof-1.4.7.1-obf.jar \
+          --config skid-full.yml
+        mv target/antispoof-1.4.7.1-obf.jar target/antispoof-1.4.7.1.jar
+
+    - name: Create Skidfuscator Config for Lite
+      run: |
+        cat > skid-lite.yml << 'EOF'
+        exempt:
+          - "com.gigazelensky.antispoof.AntiSpoof"
+        transformers:
+          string_encryption: true
+          flow_obfuscation: true
+          number_mutation: true
+          reference_obfuscation: true
+        EOF
+
+    - name: Obfuscate Lite Version
+      run: |
+        java -jar skidfuscator.jar obfuscate \
+          target/antispoof-lite-1.4.7.1.jar \
+          --output target/antispoof-lite-1.4.7.1-obf.jar \
+          --config skid-lite.yml
         mv target/antispoof-lite-1.4.7.1-obf.jar target/antispoof-lite-1.4.7.1.jar
 
     - name: Upload Full Version Artifact
