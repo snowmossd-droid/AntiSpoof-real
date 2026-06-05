@@ -41,9 +41,13 @@ jobs:
 
     - name: Download ProGuard
       run: |
-        wget -q https://github.com/Guardsquare/proguard/releases/download/v7.5.0/proguard-7.5.0.zip -O proguard.zip
-        unzip -q proguard.zip
-        mv proguard-7.5.0 proguard
+        mvn dependency:copy \
+          -Dartifact=com.guardsquare:proguard-base:7.5.0:jar \
+          -DoutputDirectory=. \
+          -Dmdep.stripVersion=true
+        ls -la proguard-base.jar
+        mkdir -p proguard/lib
+        mv proguard-base.jar proguard/lib/proguard.jar
 
     - name: Create ProGuard Config
       run: |
