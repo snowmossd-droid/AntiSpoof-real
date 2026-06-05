@@ -18,7 +18,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
@@ -35,12 +35,22 @@ jobs:
     - name: Collect Libraries for Skidfuscator
       run: |
         mkdir -p libs
+
         mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=compile
         mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeScope=provided
-        curl -sL https://api.papermc.io/v2/projects/paper/versions/1.21/builds/130/downloads/paper-1.21-130.jar -o libs/paper.jar
-        mvn dependency:copy -Dartifact=io.netty:netty-all:4.1.117.Final -DoutputDirectory=libs
-        mvn dependency:copy -Dartifact=net.kyori:adventure-api:4.17.0 -DoutputDirectory=libs
-        mvn dependency:copy -Dartifact=net.kyori:adventure-text-serializer-legacy:4.17.0 -DoutputDirectory=libs
+
+        curl -sL https://api.papermc.io/v2/projects/paper/versions/1.21/builds/130/downloads/paper-1.21-130.jar -o paper-full.jar
+
+        mkdir -p paper-tmp
+        cd paper-tmp
+        jar xf ../paper-full.jar
+        find . -name "*.jar" | while read f; do
+          name=$(basename "$f" .jar)
+          cp "$f" "../libs/" 2>/dev/null || true
+        done
+        cd ..
+
+        cp paper-full.jar libs/paper.jar
 
     - name: Download Skidfuscator
       run: |
